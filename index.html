@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Weather Prediction System</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f172a, #1e3a8a, #0284c7);
+      color: white;
+      padding: 30px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    header h1 {
+      font-size: 38px;
+      margin-bottom: 10px;
+    }
+
+    header p {
+      color: #dbeafe;
+      font-size: 16px;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: 1fr 1.3fr;
+      gap: 25px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    }
+
+    .card h2 {
+      margin-bottom: 20px;
+      font-size: 22px;
+    }
+
+    .input-group {
+      margin-bottom: 17px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      color: #e0f2fe;
+      font-size: 14px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 10px;
+      outline: none;
+      background: rgba(255,255,255,0.95);
+      color: #0f172a;
+      font-size: 15px;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(90deg, #06b6d4, #2563eb);
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    }
+
+    .result {
+      text-align: center;
+      min-height: 330px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .weather-icon {
+      font-size: 75px;
+      margin-bottom: 10px;
+    }
+
+    .prediction {
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .temperature {
+      font-size: 48px;
+      font-weight: bold;
+      color: #fde68a;
+    }
+
+    .confidence {
+      margin: 20px auto;
+      width: 90%;
+    }
+
+    .confidence-bar {
+      height: 12px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 20px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .confidence-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #22c55e, #84cc16);
+      transition: width 0.8s;
+    }
+
+    .details {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .detail {
+      background: rgba(255,255,255,0.1);
+      padding: 15px 5px;
+      border-radius: 12px;
+    }
+
+    .detail span {
+      display: block;
+      font-size: 13px;
+      color: #bae6fd;
+      margin-bottom: 5px;
+    }
+
+    .forecast {
+      margin-top: 25px;
+    }
+
+    .forecast-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+    }
+
+    .day {
+      text-align: center;
+      background: rgba(255,255,255,0.1);
+      padding: 18px 8px;
+      border-radius: 15px;
+    }
+
+    .day-icon {
+      font-size: 35px;
+      margin: 10px 0;
+    }
+
+    .day-temp {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .status {
+      margin-top: 15px;
+      color: #bae6fd;
+      font-size: 13px;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 25px;
+      color: #bfdbfe;
+      font-size: 13px;
+    }
+
+    @media (max-width: 800px) {
+      body {
+        padding: 15px;
+      }
+
+      .dashboard {
+        grid-template-columns: 1fr;
+      }
+
+      .forecast-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      header h1 {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <header>
+      <h1>🌦️ AI Weather Prediction</h1>
+      <p>Weather prediction system using an AI/ML-style prediction model</p>
+    </header>
+
+    <div class="dashboard">
+
+      <!-- INPUT SECTION -->
+      <div class="card">
+
+        <h2>📊 Weather Data</h2>
+
+        <div class="input-group">
+          <label>City</label>
+          <input type="text" id="city" placeholder="Enter city" value="Mumbai">
+        </div>
+
+        <div class="input-group">
+          <label>Temperature (°C)</label>
+          <input type="number" id="temperature" value="28">
+        </div>
+
+        <div class="input-group">
+          <label>Humidity (%)</label>
+          <input type="number" id="humidity" value="75" min="0" max="100">
+        </div>
+
+        <div class="input-group">
+          <label>Wind Speed (km/h)</label>
+          <input type="number" id="wind" value="12">
+        </div>
+
+        <div class="input-group">
+          <label>Atmospheric Pressure (hPa)</label>
+          <input type="number" id="pressure" value="1008">
+        </div>
+
+        <div class="input-group">
+          <label>Cloud Coverage (%)</label>
+          <input type="number" id="cloud" value="70" min="0" max="100">
+        </div>
+
+        <button onclick="predictWeather()">
+          🔮 Predict Weather
+        </button>
+
+      </div>
+
+
+      <!-- RESULT SECTION -->
+      <div class="card result">
+
+        <div class="weather-icon" id="weatherIcon">🌤️</div>
+
+        <div class="prediction" id="prediction">
+          Ready to Predict
+        </div>
+
+        <div class="temperature" id="resultTemp">
+          --°C
+        </div>
+
+        <div class="confidence">
+          <div>
+            Prediction Confidence:
+            <strong id="confidenceText">--%</strong>
+          </div>
+
+          <div class="confidence-bar">
+            <div class="confidence-fill" id="confidenceBar"></div>
+          </div>
+        </div>
+
+        <div class="details">
+
+          <div class="detail">
+            <span>💧 Humidity</span>
+            <strong id="humidityResult">--%</strong>
+          </div>
+
+          <div class="detail">
+            <span>💨 Wind</span>
+            <strong id="windResult">-- km/h</strong>
+          </div>
+
+          <div class="detail">
+            <span>☁️ Clouds</span>
+            <strong id="cloudResult">--%</strong>
+          </div>
+
+        </div>
+
+        <div class="status" id="status">
+          Enter weather data and click predict.
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- FORECAST -->
+    <div class="card forecast">
+
+      <h2>📅 Prediction Forecast</h2>
+
+      <div class="forecast-grid">
+
+        <div class="day">
+          <strong>Today</strong>
+          <div class="day-icon" id="icon1">🌤️</div>
+          <div class="day-temp" id="temp1">28°C</div>
+          <small id="weather1">Cloudy</small>
+        </div>
+
+        <div class="day">
+          <strong>Tomorrow</strong>
+          <div class="day-icon" id="icon2">☁️</div>
+          <div class="day-temp" id="temp2">29°C</div>
+          <small id="weather2">Cloudy</small>
+        </div>
+
+        <div class="day">
+          <strong>Day 3</strong>
+          <div class="day-icon" id="icon3">🌧️</div>
+          <div class="day-temp" id="temp3">27°C</div>
+          <small id="weather3">Rain</small>
+        </div>
+
+        <div class="day">
+          <strong>Day 4</strong>
+          <div class="day-icon" id="icon4">🌤️</div>
+          <div class="day-temp" id="temp4">30°C</div>
+          <small id="weather4">Partly Cloudy</small>
+        </div>
+
+        <div class="day">
+          <strong>Day 5</strong>
+          <div class="day-icon" id="icon5">☀️</div>
+          <div class="day-temp" id="temp5">31°C</div>
+          <small id="weather5">Sunny</small>
+        </div>
+
+      </div>
+
+    </div>
+
+    <footer>
+      AI Weather Prediction System • Demo ML-style model
+    </footer>
+
+  </div>
+
+
+  <script>
+
+    function predictWeather() {
+
+      const city =
+        document.getElementById("city").value || "Unknown City";
+
+      const temperature =
+        Number(document.getElementById("temperature").value);
+
+      const humidity =
+        Number(document.getElementById("humidity").value);
+
+      const wind =
+        Number(document.getElementById("wind").value);
+
+      const pressure =
+        Number(document.getElementById("pressure").value);
+
+      const cloud =
+        Number(document.getElementById("cloud").value);
+
+
+      let prediction;
+      let icon;
+      let confidence;
+
+
+      /*
+        Simple AI/ML-style scoring system.
+
+        Higher rain score = greater chance of rain.
+      */
+
+      let rainScore = 0;
+
+      if (humidity >= 80)
+        rainScore += 30;
+      else if (humidity >= 65)
+        rainScore += 20;
+      else if (humidity >= 50)
+        rainScore += 10;
+
+      if (cloud >= 80)
+        rainScore += 30;
+      else if (cloud >= 60)
+        rainScore += 20;
+      else if (cloud >= 40)
+        rainScore += 10;
+
+      if (pressure < 1005)
+        rainScore += 25;
+      else if (pressure < 1012)
+        rainScore += 10;
+
+      if (wind > 25)
+        rainScore += 10;
+
+
+      // Prediction
+
+      if (rainScore >= 65) {
+
+        prediction = "Rainy";
+        icon = "🌧️";
+        confidence = Math.min(96, 70 + rainScore / 4);
+
+      } else if (rainScore >= 40) {
+
+        prediction = "Cloudy";
+        icon = "☁️";
+        confidence = Math.min(92, 65 + rainScore / 5);
+
+      } else if (rainScore >= 20) {
+
+        prediction = "Partly Cloudy";
+        icon = "🌤️";
+        confidence = Math.min(90, 65 + rainScore / 4);
+
+      } else {
+
+        prediction = "Sunny";
+        icon = "☀️";
+        confidence = Math.min(95, 75 + (30 - rainScore) / 2);
+
+      }
+
+
+      // Update result
+
+      document.getElementById("weatherIcon").textContent = icon;
+
+      document.getElementById("prediction").textContent =
+        prediction;
+
+      document.getElementById("resultTemp").textContent =
+        temperature + "°C";
+
+      document.getElementById("confidenceText").textContent =
+        Math.round(confidence) + "%";
+
+      document.getElementById("confidenceBar").style.width =
+        Math.round(confidence) + "%";
+
+      document.getElementById("humidityResult").textContent =
+        humidity + "%";
+
+      document.getElementById("windResult").textContent =
+        wind + " km/h";
+
+      document.getElementById("cloudResult").textContent =
+        cloud + "%";
+
+      document.getElementById("status").textContent =
+        "Prediction generated for " + city +
+        " using temperature, humidity, wind, pressure and cloud data.";
+
+
+      generateForecast(temperature, rainScore);
+
+    }
+
+
+    function generateForecast(baseTemperature, rainScore) {
+
+      const icons = [
+        ["☀️", "Sunny"],
+        ["🌤️", "Partly Cloudy"],
+        ["☁️", "Cloudy"],
+        ["🌧️", "Rainy"]
+      ];
+
+      for (let i = 1; i <= 5; i++) {
+
+        let tempChange =
+          Math.floor(Math.random() * 5) - 2;
+
+        let temp =
+          baseTemperature + tempChange;
+
+        let index;
+
+        if (rainScore >= 65) {
+          index = Math.random() > 0.35 ? 3 : 2;
+        }
+        else if (rainScore >= 40) {
+          index = Math.random() > 0.4 ? 2 : 1;
+        }
+        else {
+          index = Math.random() > 0.4 ? 0 : 1;
+        }
+
+        document.getElementById("icon" + i).textContent =
+          icons[index][0];
+
+        document.getElementById("temp" + i).textContent =
+          temp + "°C";
+
+        document.getElementById("weather" + i).textContent =
+          icons[index][1];
+      }
+
+    }
+
+  </script>
+
+</body>
+</html>
